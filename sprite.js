@@ -1,10 +1,10 @@
-function Sprite(ctx) {
+function Sprite(ctx, border_color, fill_color) {
   this.points = [];
   this.ctx = ctx;
   this.lineWidth = 3;
-  this.strokeStyle = '#CCCCCC';
+  this.strokeStyle = border_color || '#CCCCCC';
   this.is_closed = false;
-  this.fillStyle = 'rgba(0, 0, 0, 0)'; // "#FF0000";
+  this.fillStyle = fill_color || 'rgba(0, 0, 0, 0)'; // "#FF0000";
 }
 
 Sprite.prototype.addPoint = function(pt) {

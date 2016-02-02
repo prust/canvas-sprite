@@ -1,6 +1,9 @@
 var width = window.innerWidth || document.body.clientWidth;
 var height = window.innerHeight || document.body.clientHeight;
 
+var sidebar_width = 200;
+width -= sidebar_width;
+
 var canvas = document.getElementById('canvas');
 canvas.width = width;
 canvas.height = height;
@@ -17,14 +20,18 @@ window.UI_SNAP = 5;
 var ctx = canvas.getContext("2d");
 var sprite, sprites = [];
 function createSprite() {
-  sprite = new Sprite(ctx);
+  var border_color = border_input.value;
+  var fill_color = fill_input.value;
+  sprite = new Sprite(ctx, border_color, fill_color);
   sprites.push(sprite);
 }
-createSprite();
 
 var dragging_pt = null;
 document.body.addEventListener('mousedown', function(evt) {
   var pt = event2Point(evt);
+  if (pt.x < 0)
+    return;
+
   var close_pt = _.find(sprite.points, function(sprite_pt) {
     return distance(sprite_pt, pt) < UI_SNAP;
   });
@@ -34,6 +41,9 @@ document.body.addEventListener('mousedown', function(evt) {
 
 document.body.addEventListener('mousemove', function(evt) {
   var pt = event2Point(evt);
+  if (pt.x < 0)
+    return;
+
   if (!dragging_pt)
     return;
 
@@ -42,16 +52,57 @@ document.body.addEventListener('mousemove', function(evt) {
 });
 
 document.body.addEventListener('mouseup', function(evt) {
+  var pt = event2Point(evt);
+  if (pt.x < 0)
+    return;
+
   if (dragging_pt) {
     dragging_pt = null;
   }
-  else {
-    var pt = event2Point(evt);
+  else {  
     if (control_point)
       sprite.addControlPoint(pt);
     else
       sprite.addPoint(pt);
   }
+});
+
+var show_pts_btn = document.getElementById('show-points');
+show_pts_btn.addEventListener('click', function() {
+  show_points = !show_points;
+  if (show_points)
+    show_pts_btn.innerHTML = 'Hide Points';
+  else
+    show_pts_btn.innerHTML = 'Show Points';
+});
+
+var control_pt_btn = document.getElementById('control-point');
+control_pt_btn.addEventListener('click', function() {
+  control_point = !control_point;
+  if (control_point)
+    control_pt_btn.innerHTML = 'Normal Point';
+  else
+    control_pt_btn.innerHTML = 'Control Point';
+});
+
+var create_btn = document.getElementById('create-shape');
+create_btn.addEventListener('click', function() {
+  createSprite();
+});
+
+var border_input = document.getElementById('border-color');
+border_input.addEventListener('blur', function() {
+  sprite.strokeStyle = border_input.value;
+});
+
+var fill_input = document.getElementById('fill-color');
+fill_input.addEventListener('blur', function() {
+  sprite.fillStyle = fill_input.value;
+});
+
+var close_shape_btn = document.getElementById('close-shape');
+close_shape_btn.addEventListener('click', function() {
+  sprite.close();
 });
 
 function distance(pt1, pt2) {
@@ -72,8 +123,10 @@ function square(x) {
 // }
 
 function event2Point(evt) {
-  return {x: evt.clientX, y: evt.clientY};
+  return {x: evt.clientX - sidebar_width, y: evt.clientY};
 }
+
+createSprite();
 
 requestAnimationFrame(animate);
 animate();
