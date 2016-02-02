@@ -30,10 +30,12 @@ function createSprite() {
 }
 
 var dragging_pt = null;
+var last_touch_evt;
 //document.body.addEventListener('mousedown', onMouseDown);
 document.body.addEventListener('touchstart', onMouseDown);
 function onMouseDown(evt) {
   console.log('touch start');
+  last_touch_evt = evt;
   var pt = event2Point(evt);
   if (pt.x < 0)
     return;
@@ -48,6 +50,7 @@ function onMouseDown(evt) {
 //document.body.addEventListener('mousemove', onMouseMove);
 document.body.addEventListener('touchmove', onMouseMove);
 function onMouseMove(evt) {
+  last_touch_evt = evt;
   console.log('touchmove');
   var pt = event2Point(evt);
   if (pt.x < 0)
@@ -64,7 +67,7 @@ function onMouseMove(evt) {
 document.body.addEventListener('touchend', onMouseUp);
 function onMouseUp(evt) {
   console.log('touchend');
-  var pt = event2Point(evt);
+  var pt = event2Point(evt, last_touch_evt);
   if (pt.x < 0)
     return;
   console.log(pt.x, pt.y);
@@ -135,8 +138,12 @@ function square(x) {
 //   );
 // }
 
-function event2Point(evt) {
+function event2Point(evt, last_touch_evt) {
   if (evt.touches) {
+    // the touchend event doesn't send coords, you have to use the last touchmove
+    if (!evt.touches.length)
+      evt = last_touch_evt;
+
     var touch = evt.touches[0];
     // or taking offset into consideration
     return {
