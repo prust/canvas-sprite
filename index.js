@@ -18,7 +18,7 @@ window.animate_start = null;
 
 // the distance between the mouse & any point
 // to make the mouse modify the point
-window.UI_SNAP = 5;
+window.UI_SNAP = 10;
 
 var ctx = canvas.getContext("2d");
 var sprite, sprites = [];
@@ -50,6 +50,7 @@ function onMouseDown(evt) {
 //document.body.addEventListener('mousemove', onMouseMove);
 document.body.addEventListener('touchmove', onMouseMove);
 function onMouseMove(evt) {
+  event.preventDefault(); // disables annoying page scrolling on iOS
   last_touch_evt = evt;
   console.log('touchmove');
   var pt = event2Point(evt);
