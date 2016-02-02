@@ -12,6 +12,9 @@ canvas.style.height = height + 'px';
 
 window.show_points = true;
 window.control_point = false;
+window.state_name = null;
+window.is_animating = false;
+window.animate_start = null;
 
 // the distance between the mouse & any point
 // to make the mouse modify the point
@@ -27,7 +30,9 @@ function createSprite() {
 }
 
 var dragging_pt = null;
-document.body.addEventListener('mousedown', function(evt) {
+document.body.addEventListener('mousedown', onMouseDown);
+document.body.addEventListener('touchstart', onMouseDown);
+function onMouseDown(evt) {
   var pt = event2Point(evt);
   if (pt.x < 0)
     return;
@@ -37,9 +42,11 @@ document.body.addEventListener('mousedown', function(evt) {
   });
   if (close_pt)
     dragging_pt = close_pt;
-});
+}
 
-document.body.addEventListener('mousemove', function(evt) {
+document.body.addEventListener('mousemove', onMouseMove);
+document.body.addEventListener('touchmove', onMouseMove);
+function onMouseMove(evt) {
   var pt = event2Point(evt);
   if (pt.x < 0)
     return;
@@ -49,9 +56,11 @@ document.body.addEventListener('mousemove', function(evt) {
 
   dragging_pt.x = pt.x;
   dragging_pt.y = pt.y;
-});
+}
 
-document.body.addEventListener('mouseup', function(evt) {
+document.body.addEventListener('mouseup', onMouseUp);
+document.body.addEventListener('touchend', onMouseUp);
+function onMouseUp(evt) {
   var pt = event2Point(evt);
   if (pt.x < 0)
     return;
@@ -65,7 +74,7 @@ document.body.addEventListener('mouseup', function(evt) {
     else
       sprite.addPoint(pt);
   }
-});
+}
 
 var show_pts_btn = document.getElementById('show-points');
 show_pts_btn.addEventListener('click', function() {
@@ -132,9 +141,10 @@ requestAnimationFrame(animate);
 animate();
 
 function animate() {
+  var pct = 1; // todo change this when animating
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   sprites.forEach(function(sprite) {
-    sprite.draw();
+    sprite.draw(state_name, pct);
     if (show_points)
       sprite.points.forEach(drawPoint);
   });
