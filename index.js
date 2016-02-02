@@ -18,7 +18,8 @@ window.animate_start = null;
 
 // the distance between the mouse & any point
 // to make the mouse modify the point
-window.UI_SNAP = 10;
+window.MOUSE_SNAP = 8;
+window.TOUCH_SNAP = 20;
 
 var ctx = canvas.getContext("2d");
 var sprite, sprites = [];
@@ -31,28 +32,38 @@ function createSprite() {
 
 var dragging_pt = null;
 var last_touch_evt;
-//document.body.addEventListener('mousedown', onMouseDown);
-document.body.addEventListener('touchstart', onMouseDown);
-function onMouseDown(evt) {
-  console.log('touch start');
+
+document.body.addEventListener('mousedown', function(evt) {
+  onPointerDown(evt, MOUSE_SNAP);
+});
+
+document.body.addEventListener('touchstart', function(evt) {
+  onPointerDown(evt, TOUCH_SNAP);
+});
+
+function onPointerDown(evt, snap) {
   last_touch_evt = evt;
   var pt = event2Point(evt);
   if (pt.x < 0)
     return;
 
   var close_pt = _.find(sprite.points, function(sprite_pt) {
-    return distance(sprite_pt, pt) < UI_SNAP;
+    return distance(sprite_pt, pt) < snap;
   });
   if (close_pt)
     dragging_pt = close_pt;
 }
 
-//document.body.addEventListener('mousemove', onMouseMove);
-document.body.addEventListener('touchmove', onMouseMove);
-function onMouseMove(evt) {
-  event.preventDefault(); // disables annoying page scrolling on iOS
+document.body.addEventListener('mousemove', function(evt) {
+  onPointerMove(evt, MOUSE_SNAP);
+});
+
+document.body.addEventListener('touchmove', function(evt) {
+  onPointerMove(evt, TOUCH_SNAP);
+});
+
+function onPointerMove(evt, snap) {
   last_touch_evt = evt;
-  console.log('touchmove');
   var pt = event2Point(evt);
   if (pt.x < 0)
     return;
@@ -60,18 +71,25 @@ function onMouseMove(evt) {
   if (!dragging_pt)
     return;
 
+  // disables annoying page scrolling on iOS
+  event.preventDefault();
+
   dragging_pt.x = pt.x;
   dragging_pt.y = pt.y;
 }
 
-//document.body.addEventListener('mouseup', onMouseUp);
-document.body.addEventListener('touchend', onMouseUp);
-function onMouseUp(evt) {
-  console.log('touchend');
+document.body.addEventListener('mouseup', function(evt) {
+  onPointerUp(evt, MOUSE_SNAP);
+});
+
+document.body.addEventListener('touchend', function(evt) {
+  onPointerUp(evt, TOUCH_SNAP);
+});
+
+function onPointerUp(evt, snap) {
   var pt = event2Point(evt, last_touch_evt);
   if (pt.x < 0)
     return;
-  console.log(pt.x, pt.y);
 
   if (dragging_pt) {
     dragging_pt = null;
@@ -140,25 +158,22 @@ function square(x) {
 // }
 
 function event2Point(evt, last_touch_evt) {
+  var x, y;
   if (evt.touches) {
     // the touchend event doesn't send coords, you have to use the last touchmove
     if (!evt.touches.length)
       evt = last_touch_evt;
 
     var touch = evt.touches[0];
-    // or taking offset into consideration
-    return {
-      x: touch.pageX - canvas.offsetLeft,
-      y: touch.pageY - canvas.offsetTop
-    };
+    x = touch.pageX;
+    y = touch.pageY;
   }
   else {
-    return {
-      x: evt.clientX - canvas.offsetLeft,
-      y: evt.clientY - canvas.offsetTop
-    };
+    x = evt.clientX;
+    y = evt.clientY;
   }
-  
+
+  return {x: x - canvas.offsetLeft, y: y - canvas.offsetTop};
 }
 
 createSprite();
