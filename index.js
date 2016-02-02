@@ -30,9 +30,10 @@ function createSprite() {
 }
 
 var dragging_pt = null;
-document.body.addEventListener('mousedown', onMouseDown);
+//document.body.addEventListener('mousedown', onMouseDown);
 document.body.addEventListener('touchstart', onMouseDown);
 function onMouseDown(evt) {
+  console.log('touch start');
   var pt = event2Point(evt);
   if (pt.x < 0)
     return;
@@ -44,9 +45,10 @@ function onMouseDown(evt) {
     dragging_pt = close_pt;
 }
 
-document.body.addEventListener('mousemove', onMouseMove);
+//document.body.addEventListener('mousemove', onMouseMove);
 document.body.addEventListener('touchmove', onMouseMove);
 function onMouseMove(evt) {
+  console.log('touchmove');
   var pt = event2Point(evt);
   if (pt.x < 0)
     return;
@@ -58,12 +60,14 @@ function onMouseMove(evt) {
   dragging_pt.y = pt.y;
 }
 
-document.body.addEventListener('mouseup', onMouseUp);
+//document.body.addEventListener('mouseup', onMouseUp);
 document.body.addEventListener('touchend', onMouseUp);
 function onMouseUp(evt) {
+  console.log('touchend');
   var pt = event2Point(evt);
   if (pt.x < 0)
     return;
+  console.log(pt.x, pt.y);
 
   if (dragging_pt) {
     dragging_pt = null;
@@ -132,7 +136,21 @@ function square(x) {
 // }
 
 function event2Point(evt) {
-  return {x: evt.clientX - sidebar_width, y: evt.clientY};
+  if (evt.touches) {
+    var touch = evt.touches[0];
+    // or taking offset into consideration
+    return {
+      x: touch.pageX - canvas.offsetLeft,
+      y: touch.pageY - canvas.offsetTop
+    };
+  }
+  else {
+    return {
+      x: evt.clientX - canvas.offsetLeft,
+      y: evt.clientY - canvas.offsetTop
+    };
+  }
+  
 }
 
 createSprite();
