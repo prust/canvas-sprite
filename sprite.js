@@ -37,7 +37,7 @@ Sprite.prototype.draw = function(state_name, pct) {
       return;
 
     if (state)
-      pt = state.points[ix];// interpolate(pt, state.points[ix], pct);
+      pt = interpolate(pt, state.points[ix], pct);
 
     var prev_pt = this.points[ix - 1];
     if (prev_pt && prev_pt.is_control) {

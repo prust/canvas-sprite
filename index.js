@@ -20,6 +20,7 @@ window.animate_start = null;
 // to make the mouse modify the point
 window.MOUSE_SNAP = 8;
 window.TOUCH_SNAP = 20;
+window.anim_duration = 2 * 1000;
 
 var ctx = canvas.getContext("2d");
 var sprite, sprites = [];
@@ -168,6 +169,15 @@ function onStateChange() {
   state_name = state_sel.value;
 }
 
+var animate_btn = document.getElementById('animate');
+animate_btn.addEventListener('click', function() {
+  is_animating = !is_animating;
+  if (is_animating)
+    animate_btn.innerHTML = 'Stop Animating';
+  else
+    animate_btn.innerHTML = 'Animate';
+});
+
 function distance(pt1, pt2) {
   return Math.sqrt(square(Math.abs(pt1.x - pt2.x)) + square(Math.abs(pt1.y - pt2.y)));
 }
@@ -210,7 +220,12 @@ requestAnimationFrame(animate);
 animate();
 
 function animate() {
-  var pct = 1; // todo change this when animating
+  var pct = 1
+  if (is_animating) {
+    pct = (Date.now() % anim_duration) * 2 / anim_duration;
+    if (pct > 1)
+      pct = 1 - (pct - 1); // step backwards for 2nd half
+  }
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   sprites.forEach(function(sprite) {
     sprite.draw(state_name, pct);
