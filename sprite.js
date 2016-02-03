@@ -21,7 +21,9 @@ Sprite.prototype.addControlPoint = function(pt) {
 
 Sprite.prototype.addState = function(state_name) {
   this.states[state_name] = {
-    points: this.points.slice()
+    points: this.points.map(function(pt) {
+      return _.clone(pt);
+    })
   };
 };
 
@@ -35,7 +37,7 @@ Sprite.prototype.draw = function(state_name, pct) {
       return;
 
     if (state)
-      pt = interpolate(pt, state.points[ix], pct);
+      pt = state.points[ix];// interpolate(pt, state.points[ix], pct);
 
     var prev_pt = this.points[ix - 1];
     if (prev_pt && prev_pt.is_control) {

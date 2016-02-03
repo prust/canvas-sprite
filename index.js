@@ -47,7 +47,12 @@ function onPointerDown(evt, snap) {
   if (pt.x < 0)
     return;
 
-  var close_pt = _.find(sprite.points, function(sprite_pt) {
+  var points;
+  if (state_name)
+    points = sprite.states[state_name].points;
+  else
+    points = sprite.points;
+  var close_pt = _.find(points, function(sprite_pt) {
     return distance(sprite_pt, pt) < snap;
   });
   if (close_pt)
@@ -140,6 +145,29 @@ close_shape_btn.addEventListener('click', function() {
   sprite.close();
 });
 
+var add_state_btn = document.getElementById('add-state');
+add_state_btn.addEventListener('click', function() {
+  var name = prompt('Enter name for new animation state:', '');
+  if (name) {
+    sprite.addState(name);
+    var new_opt = document.createElement('option');
+    new_opt.appendChild(document.createTextNode(name));
+    state_sel.appendChild(new_opt);
+    state_sel.value = name;
+    onStateChange();
+  }
+});
+
+var state_sel = document.getElementById('anim-state');
+state_sel.addEventListener('change', onStateChange);
+
+function onStateChange() {
+  if (state_sel.value == 'Default')
+    state_name = null;
+  else
+  state_name = state_sel.value;
+}
+
 function distance(pt1, pt2) {
   return Math.sqrt(square(Math.abs(pt1.x - pt2.x)) + square(Math.abs(pt1.y - pt2.y)));
 }
@@ -186,8 +214,12 @@ function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   sprites.forEach(function(sprite) {
     sprite.draw(state_name, pct);
-    if (show_points)
-      sprite.points.forEach(drawPoint);
+    if (show_points) {
+      if (state_name)
+        sprite.states[state_name].points.forEach(drawPoint);
+      else
+        sprite.points.forEach(drawPoint);
+    }
   });
   requestAnimationFrame(animate);
 }
