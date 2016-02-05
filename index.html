@@ -18,14 +18,19 @@
       height: 100%;
       width: 200px;
     }
+    .sidebar ul {
+      list-style-type: none;
+    }
+    .sidebar ul li.selected {
+      background-color: #336699
+    }
+    .sidebar ul li.selected a {
+      color: white;
+    }
   </style>
 </head>
 <body>
   <div class="sidebar container">
-    <br><br>
-    <button id="show-points" class="btn btn-default btn-sm">Hide Points</button>
-    <br><br>
-    <button id="create-shape" class="btn btn-default btn-sm">New Shape</button>
     <br><br>
     <button id="control-point" class="btn btn-default btn-sm">Control Point</button>
     <br><br>
@@ -43,6 +48,11 @@
     <button id="add-state" class="btn btn-default btn-sm">Add State</button>
     <br><br>
     <button id="animate" class="btn btn-default btn-sm">Animate</button>
+    <br><br>
+    Shapes:
+    <ul id="shapes-list"></ul>
+    <br><br>
+    <button id="create-shape" class="btn btn-default btn-sm">New Shape</button>
   </div>
   <canvas id="canvas"></canvas>
   <script src="sprite.js"></script>

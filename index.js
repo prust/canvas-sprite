@@ -10,7 +10,6 @@ canvas.height = height;
 canvas.style.width = width + 'px';
 canvas.style.height = height + 'px';
 
-window.show_points = true;
 window.control_point = false;
 window.state_name = null;
 window.is_animating = false;
@@ -29,6 +28,7 @@ function createSprite() {
   var fill_color = fill_input.value;
   sprite = new Sprite(ctx, border_color, fill_color);
   sprites.push(sprite);
+  updateShapesList();
 }
 
 var dragging_pt = null;
@@ -43,6 +43,9 @@ document.body.addEventListener('touchstart', function(evt) {
 });
 
 function onPointerDown(evt, snap) {
+  if (!sprite)
+    return;
+
   last_touch_evt = evt;
   var pt = event2Point(evt);
   if (pt.x < 0)
@@ -69,6 +72,9 @@ document.body.addEventListener('touchmove', function(evt) {
 });
 
 function onPointerMove(evt, snap) {
+  if (!sprite)
+    return;
+
   last_touch_evt = evt;
   var pt = event2Point(evt);
   if (pt.x < 0)
@@ -93,6 +99,9 @@ document.body.addEventListener('touchend', function(evt) {
 });
 
 function onPointerUp(evt, snap) {
+  if (!sprite)
+    return;
+
   var pt = event2Point(evt, last_touch_evt);
   if (pt.x < 0)
     return;
@@ -107,15 +116,6 @@ function onPointerUp(evt, snap) {
       sprite.addPoint(pt);
   }
 }
-
-var show_pts_btn = document.getElementById('show-points');
-show_pts_btn.addEventListener('click', function() {
-  show_points = !show_points;
-  if (show_points)
-    show_pts_btn.innerHTML = 'Hide Points';
-  else
-    show_pts_btn.innerHTML = 'Show Points';
-});
 
 var control_pt_btn = document.getElementById('control-point');
 control_pt_btn.addEventListener('click', function() {
@@ -133,33 +133,43 @@ create_btn.addEventListener('click', function() {
 
 var border_input = document.getElementById('border-color');
 border_input.addEventListener('blur', function() {
+  if (!sprite)
+    return;
+
   sprite.strokeStyle = border_input.value;
 });
 
 var fill_input = document.getElementById('fill-color');
 fill_input.addEventListener('blur', function() {
+  if (!sprite)
+    return;
+
   sprite.fillStyle = fill_input.value;
 });
 
 var close_shape_btn = document.getElementById('close-shape');
 close_shape_btn.addEventListener('click', function() {
+  if (!sprite)
+    return;
+
   sprite.close();
 });
 
 var add_state_btn = document.getElementById('add-state');
 add_state_btn.addEventListener('click', function() {
-  var name = prompt('Enter name for new animation state:', '');
-  if (name) {
-    // all child shapes should have the same states
-    sprites.forEach(function(sprite) {
-      sprite.addState(name);
-    });
-    var new_opt = document.createElement('option');
-    new_opt.appendChild(document.createTextNode(name));
-    state_sel.appendChild(new_opt);
-    state_sel.value = name;
-    onStateChange();
-  }
+  var first_sprite = sprites[0];
+  var num_states = _.values(first_sprite.states).length;
+  var name = 'State ' + (num_states + 1);
+
+  // all child shapes should have the same states
+  sprites.forEach(function(sprite) {
+    sprite.addState(name);
+  });
+  var new_opt = document.createElement('option');
+  new_opt.appendChild(document.createTextNode(name));
+  state_sel.appendChild(new_opt);
+  state_sel.value = name;
+  onStateChange();
 });
 
 var state_sel = document.getElementById('anim-state');
@@ -174,12 +184,37 @@ function onStateChange() {
 
 var animate_btn = document.getElementById('animate');
 animate_btn.addEventListener('click', function() {
+  
+  // get rid of selected item, since selected item dots don't animate
+  sprite = null;
+  updateShapesList();
+
   is_animating = !is_animating;
   if (is_animating)
     animate_btn.innerHTML = 'Stop Animating';
   else
     animate_btn.innerHTML = 'Animate';
 });
+
+var shapes_ul = document.getElementById('shapes-list');
+shapes_ul.addEventListener('click', function(evt) {
+  if (evt.target.tagName == 'A') {
+    var ix = parseInt(evt.target.getAttribute('data-ix'), 10);
+    if (ix > -1) {
+      if (sprite == sprites[ix])
+        sprite = null;
+      else
+        sprite = sprites[ix];
+      updateShapesList();
+    }
+  }
+})
+function updateShapesList() {
+  shapes_ul.innerHTML = sprites.map(function(each_sprite, ix) {
+    var sel = each_sprite == sprite ? ' class="selected"' : '';
+    return '<li' + sel + '><a href=# data-ix="' + ix + '">&nbsp;Shape ' + (ix + 1) + '</li>';
+  }).join('\n');
+}
 
 function distance(pt1, pt2) {
   return Math.sqrt(square(Math.abs(pt1.x - pt2.x)) + square(Math.abs(pt1.y - pt2.y)));
@@ -232,13 +267,14 @@ function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   sprites.forEach(function(sprite) {
     sprite.draw(state_name, pct);
-    if (show_points) {
-      if (state_name)
-        sprite.states[state_name].points.forEach(drawPoint);
-      else
-        sprite.points.forEach(drawPoint);
-    }
   });
+
+  if (sprite) {
+    if (state_name)
+      sprite.states[state_name].points.forEach(drawPoint);
+    else
+      sprite.points.forEach(drawPoint);
+  }
   requestAnimationFrame(animate);
 }
 
