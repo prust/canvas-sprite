@@ -11,7 +11,7 @@ function Sprite(ctx, border_color, fill_color) {
 Sprite.prototype.addPoint = function(pt) {
   this.points.push(pt);
   for (var state_name in this.states)
-    this.states[state_name].points.push(pt);
+    this.states[state_name].points.push(_.clone(pt));
 };
 
 Sprite.prototype.addControlPoint = function(pt) {

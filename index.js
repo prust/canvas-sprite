@@ -150,7 +150,10 @@ var add_state_btn = document.getElementById('add-state');
 add_state_btn.addEventListener('click', function() {
   var name = prompt('Enter name for new animation state:', '');
   if (name) {
-    sprite.addState(name);
+    // all child shapes should have the same states
+    sprites.forEach(function(sprite) {
+      sprite.addState(name);
+    });
     var new_opt = document.createElement('option');
     new_opt.appendChild(document.createTextNode(name));
     state_sel.appendChild(new_opt);
