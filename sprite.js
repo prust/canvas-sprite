@@ -1,25 +1,53 @@
-function Sprite(ctx, border_color, fill_color) {
+function SpriteInstance(pt, sprite) {
+  _.extend(this, pt);
+  this.sprite = sprite;
+}
+
+SpriteInstance.prototype.draw = function() {
+  this.sprite.draw(null, null, this);
+};
+
+function Sprite(ctx, sprite_data) {
+  if (sprite_data.ctx)
+    delete sprite_data.ctx;
+
+  _.extend(this, sprite_data);
+  this.shapes.forEach(function(shape_data, ix) {
+    this.shapes[ix] = new Shape(ctx, shape_data);
+  }.bind(this));
+}
+
+Sprite.prototype.draw = function(state_name, pct, offset) {
+  this.shapes.forEach(function(shape) {
+    shape.draw(state_name, pct, offset);
+  });
+};
+
+function Shape(ctx, shape_data) {
   this.points = [];
   this.states = {};
   this.ctx = ctx;
   this.lineWidth = 3;
-  this.strokeStyle = border_color || '#CCCCCC';
+  this.strokeStyle = '#CCCCCC';
   this.is_closed = false;
-  this.fillStyle = fill_color || 'rgba(0, 0, 0, 0)'; // "#FF0000";
+  this.fillStyle = 'rgba(0, 0, 0, 0)'; // "#FF0000";
+  if (shape_data.ctx)
+    delete shape_data.ctx;
+  _.extend(this, shape_data);
 }
 
-Sprite.prototype.addPoint = function(pt) {
+Shape.prototype.addPoint = function(pt) {
   this.points.push(pt);
   for (var state_name in this.states)
     this.states[state_name].points.push(_.clone(pt));
 };
 
-Sprite.prototype.addControlPoint = function(pt) {
+Shape.prototype.addControlPoint = function(pt) {
   pt.is_control = true;
   this.addPoint(pt);
 };
 
-Sprite.prototype.addState = function(state_name) {
+Shape.prototype.addState = function(state_name) {
   this.states[state_name] = {
     points: this.points.map(function(pt) {
       return _.clone(pt);
@@ -27,7 +55,9 @@ Sprite.prototype.addState = function(state_name) {
   };
 };
 
-Sprite.prototype.draw = function(state_name, pct) {
+Shape.prototype.draw = function(state_name, pct, offset) {
+  if (!offset)
+    offset = {x: 0, y: 0};
   if (state_name)
     var state = this.states[state_name];
 
@@ -43,13 +73,13 @@ Sprite.prototype.draw = function(state_name, pct) {
     if (prev_pt && prev_pt.is_control) {
       if (state)
         prev_pt = interpolate(prev_pt, state.points[ix - 1], pct);
-      this.ctx.quadraticCurveTo(prev_pt.x, prev_pt.y, pt.x, pt.y);
+      this.ctx.quadraticCurveTo(prev_pt.x + offset.x, prev_pt.y + offset.y, pt.x + offset.x, pt.y + offset.y);
     }
     else if (ix == 0) {
-      this.ctx.moveTo(pt.x, pt.y);
+      this.ctx.moveTo(pt.x + offset.x, pt.y + offset.y);
     }
     else {
-      this.ctx.lineTo(pt.x, pt.y);
+      this.ctx.lineTo(pt.x + offset.x, pt.y + offset.y);
     }
   }.bind(this));
 
@@ -63,7 +93,7 @@ Sprite.prototype.draw = function(state_name, pct) {
   this.ctx.stroke();
 };
 
-Sprite.prototype.close = function() {
+Shape.prototype.close = function() {
   this.is_closed = true;
 };
 

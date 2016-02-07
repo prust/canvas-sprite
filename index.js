@@ -26,7 +26,7 @@ var sprite, sprites = [];
 function createSprite() {
   var border_color = border_input.value;
   var fill_color = fill_input.value;
-  sprite = new Sprite(ctx, border_color, fill_color);
+  sprite = new Shape(ctx, border_color, fill_color);
   sprites.push(sprite);
   updateShapesList();
 }
@@ -208,13 +208,25 @@ shapes_ul.addEventListener('click', function(evt) {
       updateShapesList();
     }
   }
-})
+});
+
 function updateShapesList() {
   shapes_ul.innerHTML = sprites.map(function(each_sprite, ix) {
     var sel = each_sprite == sprite ? ' class="selected"' : '';
     return '<li' + sel + '><a href=# data-ix="' + ix + '">&nbsp;Shape ' + (ix + 1) + '</li>';
   }).join('\n');
 }
+
+var save_btn = document.getElementById('save');
+var title_input = document.getElementById('title');
+save.addEventListener('click', function() {
+  id = uuid.v4();
+  localStorage.setItem('sprite-' + id, JSON.stringify({
+    id: id,
+    name: title_input.value,
+    shapes: sprites
+  }));
+});
 
 function distance(pt1, pt2) {
   return Math.sqrt(square(Math.abs(pt1.x - pt2.x)) + square(Math.abs(pt1.y - pt2.y)));
