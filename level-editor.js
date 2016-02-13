@@ -13,6 +13,8 @@ canvas.style.height = height + 'px';
 window.anim_duration = 2 * 1000;
 window.is_animating = false;
 window.animate_start = null;
+window.dragging_sprite = null;
+window.dragging_offset = null;
 
 var ctx = canvas.getContext("2d");
 var sprite, sprite_instances = [];
@@ -26,24 +28,20 @@ document.body.addEventListener('touchstart', function(evt) {
 });
 
 function onPointerDown(evt) {
-  // if (!sprite)
-  //   return;
+  last_touch_evt = evt;
+  var pt = event2Point(evt);
+  if (pt.x < 0)
+    return;
 
-  // last_touch_evt = evt;
-  // var pt = event2Point(evt);
-  // if (pt.x < 0)
-  //   return;
-
-  // var points;
-  // if (state_name)
-  //   points = sprite.states[state_name].points;
-  // else
-  //   points = sprite.points;
-  // var close_pt = _.find(points, function(sprite_pt) {
-  //   return distance(sprite_pt, pt) < snap;
-  // });
-  // if (close_pt)
-  //   dragging_pt = close_pt;
+  dragging_sprite = _.find(sprite_instances, function(sprite) {
+    return sprite.intersect(pt);
+  });
+  if (!dragging_sprite && sprite) {
+    dragging_sprite = new SpriteInstance(pt, sprite);
+    sprite_instances.push(dragging_sprite);
+  }
+  if (dragging_sprite)
+    dragging_offset = {x: dragging_sprite.x - pt.x, y: dragging_sprite.y - pt.y};
 }
 
 document.body.addEventListener('mousemove', function(evt) {
@@ -55,22 +53,19 @@ document.body.addEventListener('touchmove', function(evt) {
 });
 
 function onPointerMove(evt) {
-  // if (!sprite)
-  //   return;
+  last_touch_evt = evt;
+  var pt = event2Point(evt);
+  if (pt.x < 0)
+    return;
 
-  // last_touch_evt = evt;
-  // var pt = event2Point(evt);
-  // if (pt.x < 0)
-  //   return;
+  if (!dragging_sprite)
+    return;
 
-  // if (!dragging_pt)
-  //   return;
+  // disables annoying page scrolling on iOS
+  event.preventDefault();
 
-  // // disables annoying page scrolling on iOS
-  // event.preventDefault();
-
-  // dragging_pt.x = pt.x;
-  // dragging_pt.y = pt.y;
+  dragging_sprite.x = pt.x + dragging_offset.x;
+  dragging_sprite.y = pt.y + dragging_offset.y;
 }
 
 document.body.addEventListener('mouseup', function(evt) {
@@ -89,17 +84,8 @@ function onPointerUp(evt) {
   if (pt.x < 0)
     return;
 
-  sprite_instances.push(new SpriteInstance(pt, sprite));
-
-  // if (dragging_pt) {
-  //   dragging_pt = null;
-  // }
-  // else {  
-  //   if (control_point)
-  //     sprite.addControlPoint(pt);
-  //   else
-  //     sprite.addPoint(pt);
-  // }
+  if (dragging_sprite)
+    dragging_sprite = null;
 }
 
 var sprites_ul = document.getElementById('sprites-list');

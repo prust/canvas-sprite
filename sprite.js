@@ -7,6 +7,17 @@ SpriteInstance.prototype.draw = function() {
   this.sprite.draw(null, null, this);
 };
 
+SpriteInstance.prototype.intersect = function(pt) {
+  var points = _.flatten(_.pluck(this.sprite.shapes, 'points'));
+  var min_x = _.min(_.pluck(points, 'x')) + this.x;
+  var min_y = _.min(_.pluck(points, 'y')) + this.y;
+  var max_x = _.max(_.pluck(points, 'x')) + this.x;
+  var max_y = _.max(_.pluck(points, 'y')) + this.y;
+  
+  console.log(min_x, pt.x, max_x, ' / ', min_y, pt.y, max_y);
+  return pt.x >= min_x && pt.x <= max_x && pt.y >= min_y && pt.y <= max_y;
+};
+
 function Sprite(ctx, sprite_data) {
   if (sprite_data.ctx)
     delete sprite_data.ctx;
